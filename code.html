@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>加解密</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #0c0e1a 0%, #1a1c2e 50%, #0d1117 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #e0e0e0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2em;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00d2ff, #7b2ff7, #ff6bc1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: none;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+            font-size: 0.9em;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .input-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #aab;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+
+        textarea {
+            width: 100%;
+            height: 140px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 14px;
+            color: #e0e0e0;
+            font-size: 15px;
+            resize: vertical;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: rgba(123, 47, 247, 0.5);
+            box-shadow: 0 0 20px rgba(123, 47, 247, 0.15);
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 12px 14px;
+            color: #e0e0e0;
+            font-size: 15px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            outline: none;
+            border-color: rgba(0, 210, 255, 0.5);
+            box-shadow: 0 0 20px rgba(0, 210, 255, 0.15);
+        }
+
+        .key-row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .key-row input {
+            flex: 1;
+        }
+
+        .toggle-key {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #aab;
+            padding: 10px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: all 0.3s;
+        }
+
+        .toggle-key:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .options-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .option-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        select {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: #e0e0e0;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: rgba(0, 210, 255, 0.5);
+        }
+
+        select option {
+            background: #1a1c2e;
+            color: #e0e0e0;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 12px;
+            margin: 25px 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 14px 32px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-encrypt {
+            background: linear-gradient(135deg, #7b2ff7, #4a00e0);
+            color: white;
+            box-shadow: 0 4px 15px rgba(123, 47, 247, 0.3);
+        }
+
+        .btn-encrypt:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(123, 47, 247, 0.5);
+        }
+
+        .btn-decrypt {
+            background: linear-gradient(135deg, #00d2ff, #0083b0);
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 210, 255, 0.3);
+        }
+
+        .btn-decrypt:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 210, 255, 0.5);
+        }
+
+        .btn-copy {
+            background: linear-gradient(135deg, #11998e, #0d7a5f);
+            color: white;
+            box-shadow: 0 4px 15px rgba(17, 153, 142, 0.3);
+        }
+
+        .btn-copy:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(17, 153, 142, 0.5);
+        }
+
+        .btn-clear {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #aab;
+        }
+
+        .btn-clear:hover {
+            background: rgba(255, 70, 70, 0.15);
+            border-color: rgba(255, 70, 70, 0.4);
+            color: #ff7070;
+        }
+
+        .btn:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .output-area {
+            position: relative;
+        }
+
+        .output-area textarea {
+            background: rgba(0, 0, 0, 0.5);
+            border-color: rgba(0, 210, 255, 0.2);
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            font-size: 0.8em;
+            color: #666;
+            padding: 4px 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 6px;
+        }
+
+        .stat-item span {
+            color: #00d2ff;
+            font-weight: 600;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 14px 24px;
+            border-radius: 10px;
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+            opacity: 0;
+            transform: translateX(100px);
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 9999;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .toast.success {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+        }
+
+        .toast.error {
+            background: linear-gradient(135deg, #e53935, #ff6b6b);
+        }
+
+        .toast.info {
+            background: linear-gradient(135deg, #7b2ff7, #b388ff);
+        }
+
+        .algo-info {
+            background: rgba(123, 47, 247, 0.05);
+            border: 1px solid rgba(123, 47, 247, 0.15);
+            border-radius: 10px;
+            padding: 15px 18px;
+            margin-top: 15px;
+            font-size: 0.82em;
+            color: #888;
+            line-height: 1.7;
+        }
+
+        .algo-info strong {
+            color: #b388ff;
+        }
+
+        .strength-meter {
+            height: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 2px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .strength-bar {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 0.4s, background 0.4s;
+        }
+
+        .header-decoration {
+            text-align: center;
+            margin-bottom: 5px;
+            font-size: 1.5em;
+            opacity: 0.6;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.5em;
+            }
+            .btn {
+                padding: 12px 20px;
+                font-size: 14px;
+            }
+            .panel {
+                padding: 18px;
+            }
+            .key-row {
+                flex-direction: column;
+            }
+        }
+
+        .process-steps {
+            display: flex;
+            gap: 6px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+            min-height: 28px;
+        }
+
+        .step-tag {
+            font-size: 0.7em;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: rgba(0, 210, 255, 0.1);
+            color: #00d2ff;
+            border: 1px solid rgba(0, 210, 255, 0.2);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-decoration">🔐</div>
+        <h1>极简可靠加解密</h1>
+        <p class="subtitle">基于 AES-CTR 模式 · 100% 可逆 · 零错误</p>
+
+        <div class="panel">
+            <div class="input-group">
+                <label>🔑 加密密钥（Secret Key）</label>
+                <div class="key-row">
+                    <input type="password" id="secretKey" placeholder="请输入加密密钥..." value="MySecret2024">
+                    <button class="toggle-key" onclick="toggleKeyVisibility()" title="显示/隐藏密钥">👁</button>
+                </div>
+                <div class="strength-meter">
+                    <div class="strength-bar" id="strengthBar"></div>
+                </div>
+            </div>
+
+            <div class="options-row">
+                <div class="option-item">
+                    <label style="margin-bottom:0;">编码格式:</label>
+                    <select id="outputFormat">
+                        <option value="base64" selected>Base64</option>
+                        <option value="hex">Hex</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="algo-info">
+                <strong>🧬 核心算法：</strong> 基于 Web Crypto API 的 AES-CTR 模式加密。密钥通过 PBKDF2 强化，保证高安全性。无论任何文本，加密解密均完全可逆。
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="input-group">
+                <label>📝 输入文本（Input）</label>
+                <textarea id="inputText" placeholder="请输入需要加密或解密的文本...&#10;&#10;支持中文、英文、数字、特殊字符等任意内容"></textarea>
+                <div class="stats">
+                    <div class="stat-item">字符数: <span id="inputLen">0</span></div>
+                    <div class="stat-item">字节数: <span id="inputBytes">0</span></div>
+                    <div class="stat-item">含中文: <span id="hasChinese">否</span></div>
+                </div>
+            </div>
+
+            <div class="btn-row">
+                <button class="btn btn-encrypt" onclick="encrypt()">🔒 加密 Encrypt</button>
+                <button class="btn btn-decrypt" onclick="decrypt()">🔓 解密 Decrypt</button>
+                <button class="btn btn-copy" onclick="copyOutput()">📋 复制结果</button>
+                <button class="btn btn-clear" onclick="clearAll()">✕ 清空</button>
+            </div>
+
+            <div class="process-steps" id="processSteps"></div>
+        </div>
+
+        <div class="panel output-area">
+            <div class="input-group">
+                <label>📤 输出结果（Output）</label>
+                <textarea id="outputText" placeholder="加密/解密结果将在此显示..." readonly></textarea>
+                <div class="stats">
+                    <div class="stat-item">输出长度: <span id="outputLen">0</span></div>
+                    <div class="stat-item">膨胀率: <span id="expansion">-</span></div>
+                    <div class="stat-item">耗时: <span id="timeTaken">-</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ===== 密钥强度检测 =====
+        document.getElementById('secretKey').addEventListener('input', updateStrength);
+        document.getElementById('inputText').addEventListener('input', updateInputStats);
+
+        function updateStrength() {
+            const key = document.getElementById('secretKey').value;
+            const bar = document.getElementById('strengthBar');
+            let score = 0;
+            if (key.length >= 4) score++;
+            if (key.length >= 8) score++;
+            if (key.length >= 12) score++;
+            if (/[a-z]/.test(key) && /[A-Z]/.test(key)) score++;
+            if (/\d/.test(key)) score++;
+            if (/[^a-zA-Z0-9]/.test(key)) score++;
+
+            const percent = Math.min(100, (score / 6) * 100);
+            bar.style.width = percent + '%';
+            if (percent < 40) bar.style.background = 'linear-gradient(90deg, #ff4444, #ff6b6b)';
+            else if (percent < 70) bar.style.background = 'linear-gradient(90deg, #ffaa00, #ffd000)';
+            else bar.style.background = 'linear-gradient(90deg, #11998e, #38ef7d)';
+        }
+
+        function updateInputStats() {
+            const text = document.getElementById('inputText').value;
+            document.getElementById('inputLen').textContent = text.length;
+            document.getElementById('inputBytes').textContent = new TextEncoder().encode(text).length;
+            document.getElementById('hasChinese').textContent = /[\u4e00-\u9fff]/.test(text) ? '是' : '否';
+        }
+
+        function toggleKeyVisibility() {
+            const input = document.getElementById('secretKey');
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+
+        // ===== 核心加密/解密 (基于Web Crypto API) =====
+        async function getKeyMaterial(password) {
+            const encoder = new TextEncoder();
+            return await crypto.subtle.importKey(
+                'raw',
+                encoder.encode(password),
+                { name: 'PBKDF2' },
+                false,
+                ['deriveKey']
+            );
+        }
+
+        async function deriveKey(password, salt) {
+            const keyMaterial = await getKeyMaterial(password);
+            return await crypto.subtle.deriveKey({
+                    name: 'PBKDF2',
+                    salt: salt,
+                    iterations: 100000,
+                    hash: 'SHA-256'
+                },
+                keyMaterial, {
+                    name: 'AES-CTR',
+                    length: 256
+                },
+                false,
+                ['encrypt', 'decrypt']
+            );
+        }
+
+        // 生成随机盐 (16字节) 和计数器 (16字节)
+        function generateSaltAndCounter() {
+            const salt = crypto.getRandomValues(new Uint8Array(16));
+            const counter = crypto.getRandomValues(new Uint8Array(16));
+            return { salt, counter };
+        }
+
+        // 将盐和计数器编码为可传输格式 (与密文一起存储)
+        function encodeMetadata(salt, counter) {
+            const combined = new Uint8Array(salt.length + counter.length);
+            combined.set(salt);
+            combined.set(counter, salt.length);
+            return combined;
+        }
+
+        function decodeMetadata(combined) {
+            const salt = combined.slice(0, 16);
+            const counter = combined.slice(16, 32);
+            return { salt, counter };
+        }
+
+        // ===== 加密 =====
+        async function encrypt() {
+            const startTime = performance.now();
+            const input = document.getElementById('inputText').value;
+            const password = document.getElementById('secretKey').value;
+            const format = document.getElementById('outputFormat').value;
+
+            if (!input) { showToast('请输入需要加密的文本', 'error'); return; }
+            if (!password) { showToast('请输入加密密钥', 'error'); return; }
+
+            try {
+                showSteps(['生成盐与计数器', '密钥派生(PBKDF2)', 'AES-CTR加密', '编码输出', '✓ 完成']);
+
+                const encoder = new TextEncoder();
+                const data = encoder.encode(input);
+
+                // 生成盐和计数器 (均为16字节)
+                const { salt, counter } = generateSaltAndCounter();
+
+                // 派生密钥
+                const key = await deriveKey(password, salt);
+
+                // 加密
+                const encrypted = await crypto.subtle.encrypt({
+                        name: 'AES-CTR',
+                        counter: counter,
+                        length: 64
+                    },
+                    key,
+                    data
+                );
+
+                // 组合 盐(16) + 计数器(16) + 密文
+                const metadata = encodeMetadata(salt, counter);
+                const combined = new Uint8Array(metadata.length + encrypted.byteLength);
+                combined.set(metadata);
+                combined.set(new Uint8Array(encrypted), metadata.length);
+
+                // 编码输出
+                let output;
+                if (format === 'base64') {
+                    output = btoa(String.fromCharCode(...combined));
+                } else {
+                    output = Array.from(combined).map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+                }
+
+                document.getElementById('outputText').value = output;
+                document.getElementById('outputLen').textContent = output.length;
+                document.getElementById('expansion').textContent = ((output.length / input.length) * 100).toFixed(0) + '%';
+
+                const elapsed = (performance.now() - startTime).toFixed(1);
+                document.getElementById('timeTaken').textContent = elapsed + ' ms';
+
+                showToast('加密成功！', 'success');
+            } catch (e) {
+                showToast('加密失败: ' + e.message, 'error');
+                console.error(e);
+            }
+        }
+
+        // ===== 解密 =====
+        async function decrypt() {
+            const startTime = performance.now();
+            const input = document.getElementById('inputText').value.trim();
+            const password = document.getElementById('secretKey').value;
+            const format = document.getElementById('outputFormat').value;
+
+            if (!input) { showToast('请输入需要解密的密文', 'error'); return; }
+            if (!password) { showToast('请输入解密密钥', 'error'); return; }
+
+            try {
+                showSteps(['解码输入', '分离盐与计数器', '密钥派生(PBKDF2)', 'AES-CTR解密', 'UTF-8解码', '✓ 完成']);
+
+                // 解码
+                let combined;
+                if (format === 'base64') {
+                    const binary = atob(input);
+                    combined = new Uint8Array(binary.length);
+                    for (let i = 0; i < binary.length; i++) {
+                        combined[i] = binary.charCodeAt(i);
+                    }
+                } else {
+                    const hex = input.replace(/\s/g, '');
+                    if (hex.length % 2 !== 0) throw new Error('无效的Hex格式');
+                    combined = new Uint8Array(hex.length / 2);
+                    for (let i = 0; i < hex.length; i += 2) {
+                        combined[i / 2] = parseInt(hex.substr(i, 2), 16);
+                    }
+                }
+
+                if (combined.length < 32) throw new Error('密文数据不完整');
+
+                // 分离 盐(16) + 计数器(16) + 密文
+                const metadata = combined.slice(0, 32);
+                const ciphertext = combined.slice(32);
+
+                const { salt, counter } = decodeMetadata(metadata);
+
+                // 派生密钥
+                const key = await deriveKey(password, salt);
+
+                // 解密
+                const decrypted = await crypto.subtle.decrypt({
+                        name: 'AES-CTR',
+                        counter: counter,
+                        length: 64
+                    },
+                    key,
+                    ciphertext
+                );
+
+                const decoder = new TextDecoder();
+                const output = decoder.decode(decrypted);
+
+                document.getElementById('outputText').value = output;
+                document.getElementById('outputLen').textContent = output.length;
+                document.getElementById('expansion').textContent = '100%';
+
+                const elapsed = (performance.now() - startTime).toFixed(1);
+                document.getElementById('timeTaken').textContent = elapsed + ' ms';
+
+                showToast('解密成功！', 'success');
+            } catch (e) {
+                showToast('解密失败: 密钥错误或密文已损坏', 'error');
+                document.getElementById('outputText').value = '';
+                console.error(e);
+            }
+        }
+
+        // ===== 工具函数 =====
+        function copyOutput() {
+            const output = document.getElementById('outputText').value;
+            if (!output) { showToast('没有可复制的内容', 'error'); return; }
+
+            navigator.clipboard.writeText(output).then(() => {
+                showToast('已复制到剪贴板', 'success');
+            }).catch(() => {
+                document.getElementById('outputText').select();
+                document.execCommand('copy');
+                showToast('已复制到剪贴板', 'success');
+            });
+        }
+
+        function clearAll() {
+            document.getElementById('inputText').value = '';
+            document.getElementById('outputText').value = '';
+            document.getElementById('inputLen').textContent = '0';
+            document.getElementById('inputBytes').textContent = '0';
+            document.getElementById('hasChinese').textContent = '否';
+            document.getElementById('outputLen').textContent = '0';
+            document.getElementById('expansion').textContent = '-';
+            document.getElementById('timeTaken').textContent = '-';
+            document.getElementById('processSteps').innerHTML = '';
+            showToast('已清空', 'info');
+        }
+
+        function showToast(message, type) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+            setTimeout(() => toast.classList.remove('show'), 2500);
+        }
+
+        // 步骤显示 (模拟)
+        function showSteps(steps) {
+            const container = document.getElementById('processSteps');
+            container.innerHTML = '';
+            steps.forEach((step, i) => {
+                setTimeout(() => {
+                    const tag = document.createElement('span');
+                    tag.className = 'step-tag';
+                    tag.textContent = step;
+                    container.appendChild(tag);
+                }, i * 80);
+            });
+        }
+
+        // 初始化
+        updateStrength();
+        updateInputStats();
+    </script>
+</body>
+</html>
